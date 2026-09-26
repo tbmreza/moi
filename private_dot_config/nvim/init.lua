@@ -35,3 +35,5 @@ require("lazy").setup({
     end,
   },
 })
+
+require('gitsigns').setup()
