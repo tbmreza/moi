@@ -10,6 +10,7 @@ vim.opt.relativenumber = true
 vim.opt.ignorecase = true
 vim.opt.smartcase = true
 vim.opt.wildignorecase = true
+vim.opt.completeopt = { "menu", "menuone", "noselect" }
 
 -- Yank/copy to system clipboard
 vim.opt.clipboard = "unnamedplus"
