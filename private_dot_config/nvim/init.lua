@@ -3,6 +3,7 @@
 -- Set <space> as leader key
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
+local map = vim.api.nvim_set_keymap
 
 -- General options
 vim.opt.number = true
@@ -18,6 +19,9 @@ vim.opt.clipboard = "unnamedplus"
 -- Cycle through tabs
 vim.keymap.set("n", "<Tab>", "gt", { desc = "Next tab" })
 vim.keymap.set("n", "<S-Tab>", "gT", { desc = "Previous tab" })
+
+map("n", "mm", "yygccp", { noremap = false })
+
 
 -- Bootstrap lazy.nvim
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"

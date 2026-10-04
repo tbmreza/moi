@@ -3,7 +3,7 @@
 return {
   -- Mason for managing LSP servers, linters, and formatters
   {
-    "williamboman/mason.nvim",
+    "mason-org/mason.nvim",
     cmd = "Mason",
     config = function()
       require("mason").setup()
@@ -11,8 +11,8 @@ return {
   },
 
   {
-    "williamboman/mason-lspconfig.nvim",
-    dependencies = { "williamboman/mason.nvim" },
+    "mason-org/mason-lspconfig.nvim",
+    dependencies = { "mason-org/mason.nvim" },
     config = function()
       require("mason-lspconfig").setup({
         ensure_installed = { "lua_ls", "pyright", "clangd", "ts_ls", "bashls" },
@@ -26,32 +26,47 @@ return {
     "neovim/nvim-lspconfig",
     dependencies = {
       "hrsh7th/cmp-nvim-lsp",
-      "williamboman/mason-lspconfig.nvim",
+      "mason-org/mason.nvim",
+      "mason-org/mason-lspconfig.nvim",
     },
     config = function()
-      local lspconfig = require("lspconfig")
       local capabilities = require("cmp_nvim_lsp").default_capabilities()
 
-      -- Default handler for Mason-installed servers
-      require("mason-lspconfig").setup_handlers({
-        function(server_name)
-          lspconfig[server_name].setup({
-            capabilities = capabilities,
-          })
-        end,
-        -- Custom server overrides can be added here
-        ["lua_ls"] = function()
-          lspconfig.lua_ls.setup({
-            capabilities = capabilities,
-            settings = {
-              Lua = {
-                diagnostics = { globals = { "vim" } },
-              },
-            },
-          })
-        end,
+      require("mason").setup()
+
+      require("mason-lspconfig").setup({
+        automatic_enable = true,
+      })
+
+      vim.lsp.config("*", {
+        capabilities = capabilities,
       })
     end,
+
+    -- config = function()
+    --   local lspconfig = require("lspconfig")
+    --   local capabilities = require("cmp_nvim_lsp").default_capabilities()
+    --
+    --   Default handler for Mason-installed servers
+    --   require("mason-lspconfig").setup_handlers({
+    --     function(server_name)
+    --       lspconfig[server_name].setup({
+    --         capabilities = capabilities,
+    --       })
+    --     end,
+    --     -- Custom server overrides can be added here
+    --     ["lua_ls"] = function()
+    --       lspconfig.lua_ls.setup({
+    --         capabilities = capabilities,
+    --         settings = {
+    --           Lua = {
+    --             diagnostics = { globals = { "vim" } },
+    --           },
+    --         },
+    --       })
+    --     end,
+    --   })
+    -- end,
   },
 
   -- Autocompletion Engine (nvim-cmp) + Snippets
