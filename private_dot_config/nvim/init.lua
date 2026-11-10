@@ -12,6 +12,17 @@ vim.opt.ignorecase = true
 vim.opt.smartcase = true
 vim.opt.wildignorecase = true
 vim.opt.completeopt = { "menu", "menuone", "noselect" }
+vim.o.autoread = true
+
+-- Trigger checktime to refresh buffers when focus is gained, entering a buffer, or idling
+vim.api.nvim_create_autocmd({ "BufEnter", "CursorHold", "CursorHoldI", "FocusGained" }, {
+  callback = function()
+    if vim.fn.mode() ~= 'c' then
+      vim.cmd("checktime")
+    end
+  end,
+})
+
 
 -- Yank/copy to system clipboard
 vim.opt.clipboard = "unnamedplus"

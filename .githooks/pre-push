@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+# pre-push: block pushes that introduce likely secrets (history backstop).
+# Reads "<local ref> <local sha> <remote ref> <remote sha>" lines on stdin.
+set -u
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+. "$SCRIPT_DIR/lib.secrets.sh"
+
+RED=$'\033[31m'; RESET=$'\033[0m'
+[ -t 2 ] || { RED=''; RESET=''; }
+
+zero="0000000000000000000000000000000000000000"
+fail=0
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+  if [ "$remote_sha" = "$zero" ]; then
+    # New branch: everything reachable from local_sha not already on a remote.
+    range="$local_sha --not --remotes"
+    # Fallback to full branch history if no remote has the commits.
+    if [ -z "$(git rev-list "$range" 2>/dev/null)" ]; then
+      range="$local_sha"
+    fi
+  else
+    range="$remote_sha..$local_sha"
+  fi
+
+  hits=$(git log -p --no-color --format= --diff-filter=ACMR "$range" 2>/dev/null \
+    | awk -v high="$SECRET_HIGH" -v assign="$SECRET_ASSIGN" -v ph="$SECRET_PLACEHOLDER" '
+        /^diff --git/ { file = "" }
+        /^\+\+\+ /    { file = $0; sub(/^\+\+\+ b\//, "", file); next }
+        /^\+/ && !/^\+\+\+/ && file != "" {
+          line = substr($0, 2)
+          if (line ~ high) { print file ":" line }
+          else if (line ~ assign && line !~ ph) { print file ":" line }
+        }
+      ')
+
+  if [ -n "$hits" ]; then
+    printf '%s\n' "$hits" >&2
+    fail=1
+  fi
+done
+
+if [ "$fail" -ne 0 ]; then
+  printf '%sPossible secrets detected in pushed commits — push blocked. Use "git push --no-verify" to bypass.%s\n' "$RED" "$RESET" >&2
+  exit 1
+fi
+exit 0

@@ -22,3 +22,8 @@ function fish_prompt
 
     printf '> '
 end
+
+# Added by jcode installer
+if not contains "/home/tbmreza/.local/bin" $PATH
+    set -gx PATH "/home/tbmreza/.local/bin" $PATH
+end

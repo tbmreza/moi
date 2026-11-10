@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# pre-commit: block commits that introduce likely secrets in staged files.
+set -u
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+. "$SCRIPT_DIR/lib.secrets.sh"
+
+RED=$'\033[31m'; RESET=$'\033[0m'
+[ -t 2 ] || { RED=''; RESET=''; }
+
+fail=0
+while IFS= read -r file; do
+  [ -f "$file" ] || continue
+  if secret_check "$file"; then
+    fail=1
+  fi
+done < <(git diff --cached --name-only --diff-filter=ACMR)
+
+if [ "$fail" -ne 0 ]; then
+  printf '%sPossible secrets detected — commit blocked. Use "git commit --no-verify" to bypass.%s\n' "$RED" "$RESET" >&2
+  exit 1
+fi
+exit 0
